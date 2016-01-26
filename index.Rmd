@@ -12,7 +12,9 @@ Velloso, E.; Bulling, A.; Gellersen, H.; Ugulino, W.; Fuks, H. Qualitative Activ
 
 Read more: http://groupware.les.inf.puc-rio.br/har#ixzz3yDaAOOMm
 
-## Github Repo Link
+### Github Repo Links
+
+The link for viewing this file in your browser is: http://sydphi.github.io/PML/
 
 The link to the repo containing the knitr and this index.html file is: https://github.com/sydphi/PML
 
