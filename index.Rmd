@@ -1,5 +1,5 @@
 ---
-title: "Prediction Assignment Writeup"
+title: "Prediction Assignment Report"
 author: "S. Phillips"
 date: "January 24, 2016"
 output: html_document
