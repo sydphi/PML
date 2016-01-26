@@ -12,6 +12,10 @@ Velloso, E.; Bulling, A.; Gellersen, H.; Ugulino, W.; Fuks, H. Qualitative Activ
 
 Read more: http://groupware.les.inf.puc-rio.br/har#ixzz3yDaAOOMm
 
+## Github Repo Link
+
+The link to the repo containing the knitr and this index.html file is: https://github.com/sydphi/PML
+
 ## Overview of Study
 
 In this study, 6 participants wore accelerometers on the belt, forearm, arm, and dumbell and took measurements as they performed exercise while using proper form and poor form.  
