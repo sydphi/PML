@@ -1,0 +1,143 @@
+---
+title: "Prediction Assignment Writeup"
+author: "S. Phillips"
+date: "January 24, 2016"
+output: html_document
+---
+## Introduction
+
+This is a report was created using data from the study cited below:
+
+Velloso, E.; Bulling, A.; Gellersen, H.; Ugulino, W.; Fuks, H. Qualitative Activity Recognition of Weight Lifting Exercises. Proceedings of 4th International Conference in Cooperation with SIGCHI (Augmented Human '13) . Stuttgart, Germany: ACM SIGCHI, 2013.
+
+Read more: http://groupware.les.inf.puc-rio.br/har#ixzz3yDaAOOMm
+
+## Overview of Study
+
+In this study, 6 participants wore accelerometers on the belt, forearm, arm, and dumbell and took measurements as they performed exercise while using proper form and poor form.  
+
+## Methodology
+
+This process will be using the accelerometer data to predict if the subjects properly or improperly performed exercises. It will test training predictions against the *classe* variable in the training data using *Random Forests* from R's *caret* package.
+
+*Random Forests* was chosen due to its high accuracy.  Feature selection aimed to balance performance with accuracy and was evaluated through a series of iterative tests.  Code for options that were not used are commented out and are accompanied by comments showing their results. The final solutions are in the executed code.
+
+## Steps Taken
+
+1. Remove qualitative and logical columns.
+2. Perform PCA (Principle Component Analysis) using *cor* and *preProcess* with *method="pca"*
+3. Test eliminating less essential features by evaluation OOB Error Estimates and Cross Validation.
+4. Perform iterative tests of steps 2 & 3 to tune accuracy using OOB estimates and Cross Validating and balancing against computing performance. (in order to save space, I didn't print this output for the iterative tests, but documented their results in the comments)
+5. Print OOB error estimates and Confusion Matrix for Cross Validation of the final solution. 
+
+## Summary of Results
+
+The final solution kept 44 continuous variables in the training set and used Random Forest to produce an OOB Error Estimate of 1.41% and accuracy of 98.4%. Cross Validation by means of the confusion matrix showed that the model produced a small amount of error among the categories with *classe* values of D having the most error at .029. 
+
+Processing time for these results took approximately 5 minutes. Attempts to reduce independent variables produced less accurate outcomes so computing was regulated using the *ntree* function in the *train()* command - which limited the trees in rf. 
+
+
+```{r load library, cache=T, message=F, error=F}
+
+suppressMessages(suppressWarnings(require(caret)))
+set.seed(94463)
+
+```
+
+## Load Data
+
+```{r cache=T}
+
+trURL <- "http://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
+teURL <- "http://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
+training <- read.csv(trURL,na.strings=c("NA",""))
+test <- read.csv(teURL,na.strings=c("NA",""))
+
+```
+
+## Feature Selection
+An exploratory review of the data revealed that roughly two thirds of the columns were logical.  By removing these and the unnecessary qualitative fields, the load on the process can be reduced while still leaving all continuous variables which will be evaluated using Principle Component Analysis in our next steps.
+
+```{r cache=T}
+
+#Vector to eliminate logical and qualitative fields.  Column 160 is the classe variable.
+trNdx <- c(41:49, 60:68, 84:86,102,113:124,140,151:160) 
+#Create new training set
+training <- training[,trNdx] 
+
+```
+## Principle Component Analysis using Correlation
+
+At this stage, there are `r length(training)-1` features in the training data set.  It can be expected that some variables will be highly correlated so applying the *findCorrelation* function may show redundant features for removal and reduce execution time.  
+
+This resulted in execution time being slightly reduced, but OOB Error est was unacceptable considering the negligible performance gain (see results in commented code). 
+
+
+```{r cache=T}
+# PCA logic is commented out due to better results with our set of 44 variables
+# but is left here to document the test. 
+
+# correlationMatrix <- cor(training[,1:44]) #excluding classe variable
+# highlyCorrelated <- findCorrelation(correlationMatrix, cutoff=0.75)
+# training <- training[,-highlyCorrelated]
+
+# TEST RESULTS FROM ABOVE LOGIC
+# Cutoff=.50 19 Predictors, OOB Error est. was 5.04%  
+# Cutoff=.75 30 Predictors, OOB Error est. was 4.3%
+# When this step is skipped: 44 Predictors,  OOB Error est. was 1.46%
+
+```
+Next, lets see if Principle Component Analysis produces different results.
+
+## Principle Component Analysis using preProcess
+
+PCA using *preProcess* also yielded high OOB error estimates with negligible gain.  The code for this test and its results are in in code comments below.
+
+```{r}
+#prep <- preProcess(training[, -45], method="pca", pcaComp=30)
+#trainPred <- predict(prep, training[, -45]) 
+#PCAfit <- train(training$classe ~ .,data=trainPred, method="rf", ntree=30)
+
+# TEST RESULTS FROM ABOVE
+# pcaComp=20, OOB Error est. = 5.53%
+# pcaComp=30, OOB Error est. = 3.64%
+# skipping this step OOB Error est. = 1.46%
+```
+
+
+So, this solution still retains `r length(training)-1 ` features for its prediction.  We will move forward with these features as a compromise between performance and accuracy.
+
+
+```{r cache=T, message=F}
+
+rf_model <- train(classe~., data=training, method="rf", ntree=30)
+
+```
+
+## Conclusion
+
+In addition to being highly accurate, *Random Forests* also splits off it's own test partitions and reports OOB error estimates and Cross Validation. Below are our final results that were produced by our selection of features.  
+
+### Training Model
+
+```{r cache=T}
+
+print(rf_model)
+
+```
+
+### Cross Validation
+
+```{r cache=T}
+print(rf_model$finalModel)
+```
+
+##Final Test Predictions using the Test data 
+
+(output deliberately withheld)
+
+```
+print(predict(rf_model, newdata=test))
+
+```
+
